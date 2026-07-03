@@ -1,10 +1,9 @@
-// Roda automaticamente a cada 1 minuto (configurado via schedule() abaixo).
-// Para cada família cadastrada, olha os horários de refeição e suplemento que
-// ELA MESMA preencheu no app, e manda a notificação push na hora certa —
-// só se ainda não foi marcado como feito, e só uma vez por horário (não fica
-// repetindo a cada minuto).
+// Roda automaticamente a cada 1 minuto (agendamento configurado no final do
+// arquivo, via "export const config"). Para cada família cadastrada, olha os
+// horários de refeição e suplemento que ELA MESMA preencheu no app, e manda
+// a notificação push na hora certa — só se ainda não foi marcado como feito,
+// e só uma vez por horário (não fica repetindo a cada minuto).
 
-import { schedule } from '@netlify/functions';
 import { getStore } from '@netlify/blobs';
 import webpush from 'web-push';
 
@@ -54,7 +53,7 @@ async function sendPush(subscription, title, body, tag) {
 const runCheck = async () => {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
     console.error('VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY não configuradas nas variáveis de ambiente do site.');
-    return { statusCode: 200, body: 'sem chaves VAPID configuradas' };
+    return new Response('sem chaves VAPID configuradas', { status: 200 });
   }
 
   const store = getStore('tealimenta-devices');
@@ -123,7 +122,11 @@ const runCheck = async () => {
     }
   }
 
-  return { statusCode: 200, body: 'ok' };
+  return new Response('ok', { status: 200 });
 };
 
-export const handler = schedule('* * * * *', runCheck);
+export default runCheck;
+
+export const config = {
+  schedule: '* * * * *'
+};
